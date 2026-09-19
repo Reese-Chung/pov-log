@@ -91,13 +91,13 @@ h1{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1.15;ma
 .cell.has{cursor:pointer}
 .cell .n{position:absolute;top:3px;left:5px;font-weight:500;line-height:1.1;z-index:2}
 .cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.cell .bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:space-between;gap:3px;padding:14px 5px 4px;z-index:2}
+.cell .bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:space-between;gap:3px;padding:18px 5px 2px;z-index:2}
 .cell.hasimg .n{display:none}
-.cell.hasimg .bar{background:linear-gradient(rgba(10,14,22,0),rgba(10,14,22,.72))}
-.cell.hasimg .bar .d{color:#fff;font-weight:700;font-size:.92rem;line-height:1;text-shadow:0 1px 2px rgba(10,14,22,.5)}
+.cell.hasimg .bar{background:linear-gradient(rgba(10,14,22,0),rgba(10,14,22,.78))}
+.cell.hasimg .bar .d{color:#fff;font-weight:700;font-size:.92rem;line-height:1;display:block;transform:translateY(1px);text-shadow:0 1px 2px rgba(10,14,22,.5)}
 .cell:not(.hasimg) .bar .d{display:none}
 .cell .dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
-.cell .dots i{width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
+.cell .dots i{width:5px;height:5px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.2px rgba(255,255,255,.75)}
 
 /* gallery */
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
