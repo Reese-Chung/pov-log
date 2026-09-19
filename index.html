@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>我的觀點紀錄</title>
+<title>和지민一起做記錄</title>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#151A24" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="觀點紀錄">
+<meta name="apple-mobile-web-app-title" content="知珉世界">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
 <link rel="icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -206,8 +206,8 @@ textarea.in{min-height:110px;resize:vertical}
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>我的觀點紀錄</h1>
-      <div class="sub" id="sub">載入中…</div>
+      <h1>和지민一起做記錄</h1>
+      <div class="sub" id="sub">知珉的美貌，民族的榮耀</div>
     </div>
     <div class="stat"><b id="total">0</b>筆紀錄<br><button class="btn" id="backup" style="margin-top:6px;padding:4px 10px;font-size:.82rem">備份</button></div>
   </header>
@@ -289,7 +289,7 @@ const store = {
 };
 function loaded(){
   state.ready = true;
-  $('#sub').textContent = store.mode==='db' ? '紀錄已同步到你的帳號，只有你看得到' : '紀錄只存在你這台裝置的瀏覽器，別人看不到';
+  $('#sub').textContent = '知珉的美貌，民族的榮耀';
   render();
 }
 const init = () => {
