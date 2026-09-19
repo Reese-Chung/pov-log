@@ -74,7 +74,7 @@ h1{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1.15;ma
 .stars{color:var(--star);letter-spacing:1px}
 .title{font-family:var(--serif);font-weight:700;font-size:1.12rem;margin:2px 0 4px;word-break:break-word}
 .note{color:var(--muted);font-size:.93rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
-.thumb{margin-top:10px;border-radius:4px;max-height:220px;object-fit:cover;width:100%}
+.thumb{margin-top:10px;border-radius:4px;max-height:60vh;object-fit:contain;object-position:center;width:100%;background:var(--paper)}
 
 .empty{text-align:center;padding:48px 16px;color:var(--muted)}
 .empty strong{display:block;font-family:var(--serif);color:var(--ink);font-size:1.15rem;margin-bottom:4px}
@@ -85,14 +85,14 @@ h1{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1.15;ma
 .calhead button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:36px;height:36px}
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .wd{text-align:center;font-size:.75rem;color:var(--muted);padding:4px 0}
-.cell{aspect-ratio:1/1.15;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;font-size:.8rem}
+.cell{aspect-ratio:1/1.15;background:var(--card);border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden;display:flex;flex-direction:column;font-size:.8rem}
 .cell.out{visibility:hidden}
 .cell.today{border-color:var(--ink)}
 .cell.has{cursor:pointer}
-.cell .n{position:relative;z-index:1;font-weight:500;padding:0 3px;border-radius:4px}
-.cell.hasimg .n{background:var(--card)}
-.cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.9}
-.cell .dots{margin-top:auto;display:flex;gap:2px;flex-wrap:wrap;position:relative;z-index:1}
+.cell .n{position:relative;z-index:2;font-weight:500;padding:2px 4px 1px;line-height:1.1;background:var(--card);align-self:stretch}
+.cell .art{position:relative;flex:1;overflow:hidden}
+.cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.cell .dots{position:absolute;left:3px;right:3px;bottom:3px;display:flex;gap:2px;flex-wrap:wrap;z-index:1}
 .cell .dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
 
 /* gallery */
@@ -127,14 +127,20 @@ textarea.in{min-height:110px;resize:vertical}
 .rate button{border:0;background:none;font-size:1.8rem;line-height:1;padding:2px;color:var(--line)}
 .rate button.on{color:var(--star)}
 .rate span{margin-left:8px;color:var(--muted);font-size:.85rem}
-.photo{display:flex;gap:10px;align-items:center}
-.photo img{width:72px;height:72px;object-fit:cover;border-radius:6px}
+.photo{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pthumb{position:relative;display:inline-block}
+.pthumb img{width:72px;height:72px;object-fit:cover;border-radius:6px;display:block}
+.pthumb button{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:.8rem;line-height:1;padding:0}
+.thumbwrap{position:relative}
+.pcount{position:absolute;right:8px;bottom:8px;background:rgba(10,14,22,.72);color:#fff;font-size:.75rem;padding:2px 8px;border-radius:999px}
+.tile .pcount{bottom:auto;top:8px}
+.detail-img + .detail-img{margin-top:8px}
 .btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 16px;font-weight:500}
 .btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .btn.danger{color:var(--danger);border-color:transparent;background:none;padding-left:0}
 .actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:18px}
 .actions .grow{flex:1}
-.detail-img{border-radius:8px;margin:8px 0 12px;width:100%}
+.detail-img{border-radius:8px;margin:8px 0 12px;width:100%;max-height:70vh;object-fit:contain;background:var(--paper)}
 .detail-note{white-space:pre-wrap;word-break:break-word}
 .err{color:var(--danger);font-size:.85rem;margin-top:8px}
 .cardopts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
@@ -230,6 +236,7 @@ textarea.in{min-height:110px;resize:vertical}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
+const MAX_PHOTOS = 20;
 const CATS = [
   {id:'daily', name:'日常', c:'var(--c-daily)'},
   {id:'movie', name:'電影', c:'var(--c-movie)'},
@@ -250,41 +257,62 @@ const starStr = r => r ? '★'.repeat(r)+'☆'.repeat(5-r) : '';
 const state = { logs:[], view:'feed', cat:'all', day:null, month:new Date(), ready:false, reviewYear:null, reviewPage:0, otdHidden:false };
 state.month.setDate(1);
 
-/* ---------- storage: db (per-viewer private) with localStorage fallback ---------- */
+/* ---------- storage: IndexedDB (this device only), migrated from localStorage ---------- */
 const LS_KEY = 'povlog.v1';
+const IDB_NAME = 'povlog', IDB_STORE = 'kv', IDB_KEY = 'logs';
+
+function idbOpen(){
+  return new Promise((res, rej)=>{
+    const r = indexedDB.open(IDB_NAME, 1);
+    r.onupgradeneeded = ()=>{ if(!r.result.objectStoreNames.contains(IDB_STORE)) r.result.createObjectStore(IDB_STORE); };
+    r.onsuccess = ()=>res(r.result);
+    r.onerror = ()=>rej(r.error);
+  });
+}
+function idbReq(mode, fn){
+  return idbOpen().then(db => new Promise((res, rej)=>{
+    const tx = db.transaction(IDB_STORE, mode);
+    const req = fn(tx.objectStore(IDB_STORE));
+    req.onsuccess = ()=>res(req.result);
+    req.onerror = ()=>rej(req.error);
+    tx.onabort = ()=>rej(tx.error);
+  }));
+}
+
 const store = {
-  mode:'local', col:null,
+  mode:'local',
   async init(){
-    let db=null, user=null;
-    try{ [db,user] = await Promise.all([window.claude?.use?.('db'), window.claude?.use?.('user')]); }catch(e){}
-    let uid=null;
-    try{ uid = user ? await user.id() : null; }catch(e){}
-    if(db && uid){
-      this.mode='db';
-      this.col = db.collection('data/users/'+uid);
-      this.col.onSnapshot(snap=>{
-        state.logs = snap.docs.map(d=>({id:d.id, ...d.data()}));
-        loaded();
-      }, err=>{ toast('同步中斷，請重新整理頁面'); });
+    let saved = null;
+    try{ saved = await idbReq('readonly', st => st.get(IDB_KEY)); }catch(e){}
+    if(Array.isArray(saved)){
+      state.logs = saved;
     } else {
-      this.mode='local';
-      try{ state.logs = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ state.logs=[]; }
-      loaded();
+      let old = [];
+      try{ old = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }catch(e){}
+      state.logs = Array.isArray(old) ? old : [];
+      if(state.logs.length) this.saveLocal();
     }
+    loaded();
   },
-  saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state.logs)); }catch(e){ toast('儲存空間不足，請移除部分照片'); } },
+  saveLocal(){
+    const snapshot = state.logs.map(l=>({...l}));
+    return idbReq('readwrite', st => st.put(snapshot, IDB_KEY))
+      .catch(e=>{ toast('儲存失敗，裝置空間可能不足'); throw e; });
+  },
   async put(log){
-    const {id, ...data} = log;
-    if(this.mode==='db'){ await this.col.doc(id).set(data); }
-    else{
-      const i = state.logs.findIndex(l=>l.id===id);
-      if(i>=0) state.logs[i]=log; else state.logs.push(log);
-      this.saveLocal(); render();
-    }
+    const i = state.logs.findIndex(l=>l.id===log.id);
+    const backup = state.logs.slice();
+    if(i>=0) state.logs[i]=log; else state.logs.push(log);
+    try{ await this.saveLocal(); }
+    catch(e){ state.logs = backup; render(); throw e; }
+    render();
   },
   async del(id){
-    if(this.mode==='db'){ await this.col.doc(id).delete(); }
-    else{ state.logs = state.logs.filter(l=>l.id!==id); this.saveLocal(); render(); }
+    const backup = state.logs.slice();
+    state.logs = state.logs.filter(l=>l.id!==id);
+    try{ await this.saveLocal(); }
+    catch(e){ state.logs = backup; render(); throw e; }
+    render();
   }
 };
 function loaded(){
@@ -292,14 +320,11 @@ function loaded(){
   $('#sub').textContent = '知珉的美貌，民族的榮耀';
   render();
 }
-const init = () => {
-  store.mode='local';
-  try{ state.logs = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ state.logs=[]; }
-  loaded();
-};
+const init = () => { store.init(); };
 
 /* ---------- rendering ---------- */
 function sorted(list){ return [...list].sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.created||0)-(a.created||0)); }
+function photosOf(l){ return Array.isArray(l.photos) && l.photos.length ? l.photos : (l.photo ? [l.photo] : []); }
 function records(){ return state.logs.filter(l=>!l.wish); }
 function wishes(){ return state.logs.filter(l=>l.wish); }
 function filtered(){
@@ -325,7 +350,7 @@ function entryHTML(l){
       <div class="meta"><span class="cat">${c.name}</span>${l.rating?`<span class="stars">${starStr(l.rating)}</span>`:''}</div>
       <div class="title">${esc(l.title)}</div>
       ${l.note?`<div class="note">${esc(l.note)}</div>`:''}
-      ${l.photo?`<img class="thumb" src="${l.photo}" alt="">`:''}
+      ${photosOf(l).length?`<div class="thumbwrap"><img class="thumb" src="${photosOf(l)[0]}" alt="">${photosOf(l).length>1?`<span class="pcount">${photosOf(l).length} 張</span>`:''}</div>`:''}
     </div></button>`;
 }
 
@@ -348,7 +373,7 @@ function onThisDayHTML(){
     ${l.slice(0,3).map(x=>{
       const c = catOf(x.cat), ago = y - Number(x.date.slice(0,4));
       return `<button class="otd-i" data-open="${x.id}" style="--c:${c.c}">
-        ${x.photo?`<img src="${x.photo}" alt="">`:`<span class="otd-dot"></span>`}
+        ${photosOf(x).length?`<img src="${photosOf(x)[0]}" alt="">`:`<span class="otd-dot"></span>`}
         <span class="otd-txt"><b>${esc(x.title)}</b><i>${ago} 年前 · ${c.name}${x.rating?' · '+'★'.repeat(x.rating):''}</i></span></button>`;
     }).join('')}
     ${l.length>3?`<p class="sub" style="margin:6px 0 0">另有 ${l.length-3} 筆同一天的紀錄</p>`:''}
@@ -375,11 +400,13 @@ function renderCal(){
   for(let i=0;i<first;i++) cells += `<div class="cell out"></div>`;
   for(let d=1; d<=days; d++){
     const key = `${y}-${pad(mo+1)}-${pad(d)}`; const items = byDay[key]||[];
-    const img = items.find(x=>x.photo);
-    cells += `<div class="cell${items.length?' has':''}${img?' hasimg':''}${key===today?' today':''}" ${items.length?`data-day="${key}" role="button" tabindex="0" aria-label="${key}，${items.length} 筆"`:''}>
-      ${img?`<img src="${img.photo}" alt="">`:''}
+    const img = items.find(x=>photosOf(x).length);
+    cells += `<div class="cell${items.length?' has':''}${key===today?' today':''}" ${items.length?`data-day="${key}" role="button" tabindex="0" aria-label="${key}，${items.length} 筆"`:''}>
       <span class="n">${d}</span>
-      <span class="dots">${items.slice(0,6).map(x=>`<i style="--c:${catOf(x.cat).c}"></i>`).join('')}</span>
+      <span class="art">
+        ${img?`<img src="${photosOf(img)[0]}" alt="">`:''}
+        <span class="dots">${items.slice(0,6).map(x=>`<i style="--c:${catOf(x.cat).c}"></i>`).join('')}</span>
+      </span>
     </div>`;
   }
   const monthCount = Object.keys(byDay).filter(k=>k.startsWith(`${y}-${pad(mo+1)}`)).reduce((s,k)=>s+byDay[k].length,0);
@@ -394,8 +421,8 @@ function renderGallery(){
   if(!list.length) return emptyHTML();
   return `<div class="gallery">${list.map(l=>{
     const c = catOf(l.cat);
-    return l.photo
-      ? `<button class="tile" data-open="${l.id}"><img src="${l.photo}" alt="${esc(l.title)}"><div class="cap"><b>${esc(l.title)}</b>${c.name}${l.rating?' '+'★'.repeat(l.rating):''}</div></button>`
+    return photosOf(l).length
+      ? `<button class="tile" data-open="${l.id}"><img src="${photosOf(l)[0]}" alt="${esc(l.title)}">${photosOf(l).length>1?`<span class="pcount">${photosOf(l).length} 張</span>`:''}<div class="cap"><b>${esc(l.title)}</b>${c.name}${l.rating?' '+'★'.repeat(l.rating):''}</div></button>`
       : `<button class="tile noimg" data-open="${l.id}" style="--c:${c.c}"><span style="color:${c.c};font-size:.8rem;font-weight:700">${c.name}</span><b>${esc(l.title)}</b><span class="stars">${starStr(l.rating)}</span></button>`;
   }).join('')}</div>`;
 }
@@ -487,7 +514,7 @@ function openDetail(id){
     <div class="meta" style="--c:${c.c}"><span class="cat">${c.name}</span><span style="color:var(--muted)">${l.date}</span></div>
     <h3 style="margin-top:4px">${esc(l.title)}</h3>
     ${l.rating?`<div class="stars" style="font-size:1.2rem">${starStr(l.rating)}</div>`:''}
-    ${l.photo?`<img class="detail-img" src="${l.photo}" alt="">`:''}
+    ${photosOf(l).map(src=>`<img class="detail-img" src="${src}" alt="">`).join('')}
     ${l.note?`<p class="detail-note">${esc(l.note)}</p>`:''}
     <div class="actions"><button class="btn danger" id="del">刪除</button><span class="grow"></span>
       <button class="btn" id="close">關閉</button><button class="btn" id="mkcard">製作卡片</button><button class="btn primary" id="edit">編輯</button></div>`;
@@ -502,7 +529,8 @@ function openDetail(id){
 }
 
 function openForm(existing, opts={}){
-  const f = existing ? {...existing} : {id:'', cat: state.cat!=='all'?state.cat:'daily', title:'', date: state.day || ymd(new Date()), rating:0, note:'', photo:'', ...(opts.prefill||{})};
+  const f = existing ? {...existing} : {id:'', cat: state.cat!=='all'?state.cat:'daily', title:'', date: state.day || ymd(new Date()), rating:0, note:'', photo:'', photos:[], ...(opts.prefill||{})};
+  f.photos = photosOf(f);
   const draw = () => {
     $('#sheet').innerHTML = `
       <h3>${existing?'編輯紀錄':'新增紀錄'}</h3>
@@ -516,24 +544,33 @@ function openForm(existing, opts={}){
       <div class="rate" id="rate">${[1,2,3,4,5].map(n=>`<button type="button" data-r="${n}" class="${n<=f.rating?'on':''}" aria-label="${n} 顆星">★</button>`).join('')}<span>${f.rating?f.rating+' / 5':'點選給分，再點一次取消'}</span></div>
       <label class="f" for="nt">心得</label>
       <textarea class="in" id="nt" maxlength="5000" placeholder="寫下你的觀點">${esc(f.note)}</textarea>
-      <label class="f">照片</label>
-      <div class="photo">${f.photo?`<img src="${f.photo}" alt="">`:''}
-        <label class="btn" style="display:inline-block">${f.photo?'更換照片':'選擇照片'}<input type="file" accept="image/*" id="ph" hidden></label>
-        ${f.photo?`<button type="button" class="btn danger" id="rmph">移除</button>`:''}</div>
+      <label class="f">照片（最多 ${MAX_PHOTOS} 張）</label>
+      <div class="photo">${f.photos.map((src,i)=>`<span class="pthumb"><img src="${src}" alt=""><button type="button" data-rmp="${i}" aria-label="移除第 ${i+1} 張">✕</button></span>`).join('')}
+        ${f.photos.length<MAX_PHOTOS?`<label class="btn" style="display:inline-block">${f.photos.length?'再加一張':'選擇照片'}<input type="file" accept="image/*" id="ph" multiple hidden></label>`:'<span class="sub" style="margin:0">已達張數上限</span>'}</div>
       <div class="err" id="err"></div>
       <div class="actions"><button class="btn" id="cancel">取消</button><button class="btn primary" id="save">儲存</button></div>`;
     const sync = ()=>{ f.title=$('#t').value; f.date=$('#dt').value; f.note=$('#nt').value; };
     $('#sheet').querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>{ sync(); f.cat=b.dataset.pc; draw(); });
     $('#rate').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ sync(); const r=+b.dataset.r; f.rating = f.rating===r?0:r; draw(); });
-    $('#ph').onchange = async e=>{ sync(); const file=e.target.files[0]; if(!file) return;
-      try{ f.photo = await shrink(file); draw(); }catch(err){ $('#err').textContent='無法讀取這張照片，請換一張試試。'; } };
-    if($('#rmph')) $('#rmph').onclick = ()=>{ sync(); f.photo=''; draw(); };
+    if($('#ph')) $('#ph').onchange = async e=>{
+      sync();
+      const files = [...e.target.files].slice(0, MAX_PHOTOS - f.photos.length);
+      if(!files.length) return;
+      $('#err').textContent = '照片處理中…';
+      for(const file of files){
+        try{ f.photos.push(await shrink(file)); }
+        catch(err){ $('#err').textContent='有一張照片無法讀取，已略過。'; }
+      }
+      draw();
+      if(f.photos.length >= MAX_PHOTOS) $('#err').textContent='已達張數上限。';
+    };
+    $('#sheet').querySelectorAll('[data-rmp]').forEach(b=>b.onclick=()=>{ sync(); f.photos.splice(+b.dataset.rmp,1); draw(); });
     $('#cancel').onclick = ()=>dlg.close();
     $('#save').onclick = async ()=>{
       sync();
       if(!f.title.trim()){ $('#err').textContent='請輸入標題。'; $('#t').focus(); return; }
       if(!f.date){ $('#err').textContent='請選擇日期。'; return; }
-      const log = {...f, title:f.title.trim(), id: f.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,7)), created: f.created || Date.now()};
+      const log = {...f, title:f.title.trim(), photos:f.photos, photo:f.photos[0]||'', id: f.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,7)), created: f.created || Date.now()};
       $('#save').disabled = true;
       try{ await store.put(log); if(opts.afterSave) await opts.afterSave(); dlg.close(); toast(opts.doneMsg || (existing?'已更新':'已儲存')); }
       catch(e){ $('#save').disabled=false; $('#err').textContent = e?.code==='quota_exceeded' ? '紀錄數量已達上限，請先刪除部分紀錄。' : '儲存失敗，請再試一次。'; }
@@ -549,14 +586,14 @@ function shrink(file){
   return new Promise((res,rej)=>{
     const img = new Image(); const url = URL.createObjectURL(file);
     img.onload = ()=>{
-      let max = 900, q = .78, out;
+      let max = 1280, q = .82, out;
       for(let i=0;i<6;i++){
         const s = Math.min(1, max/Math.max(img.width,img.height));
         const cv = document.createElement('canvas');
         cv.width = Math.round(img.width*s); cv.height = Math.round(img.height*s);
         cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
         out = cv.toDataURL('image/jpeg', q);
-        if(out.length < 180000) break;
+        if(out.length < 420000) break;
         max = Math.round(max*.8); q = Math.max(.5, q-.06);
       }
       URL.revokeObjectURL(url); res(out);
@@ -581,13 +618,15 @@ function mergeLogs(incoming){
   valid.forEach(l=>{
     const clean = {id:l.id, cat: CATS.some(c=>c.id===l.cat)?l.cat:'daily', title:l.title.slice(0,120), date:l.date.slice(0,10),
       rating: Math.max(0,Math.min(5,Number(l.rating)||0)), note:String(l.note||'').slice(0,5000),
-      photo: typeof l.photo==='string' && l.photo.startsWith('data:image/') ? l.photo : '', created:Number(l.created)||Date.now()};
+      photos: (Array.isArray(l.photos)?l.photos:(typeof l.photo==='string'?[l.photo]:[])).filter(x=>typeof x==='string'&&x.startsWith('data:image/')).slice(0,MAX_PHOTOS),
+      created:Number(l.created)||Date.now()};
+    clean.photo = clean.photos[0] || '';
     if(l.wish) clean.wish = true;
     map.has(l.id) ? updated++ : added++;
     map.set(l.id, clean);
   });
   state.logs = [...map.values()];
-  store.saveLocal(); render();
+  store.saveLocal().catch(()=>{}); render();
   return {added, updated, skipped: incoming.length-valid.length};
 }
 
@@ -702,7 +741,7 @@ async function drawTicket(cv, l, t){
   cv.width=W*S; cv.height=H*S;
   const ctx=cv.getContext('2d'); ctx.scale(S,S);
   const c=catOf(l.cat), col=CAT_HEX[l.cat], d=new Date(l.date+'T00:00');
-  const img = await loadImg(l.photo);
+  const img = await loadImg(photosOf(l)[0]);
 
   ctx.save();
   ctx.beginPath(); ctx.roundRect(0,0,W,H,R); ctx.clip();
@@ -761,7 +800,7 @@ async function drawBookmark(cv, l, t){
   cv.width=W*S; cv.height=H*S;
   const ctx=cv.getContext('2d'); ctx.scale(S,S);
   const c=catOf(l.cat), col=CAT_HEX[l.cat], d=new Date(l.date+'T00:00');
-  const img = await loadImg(l.photo);
+  const img = await loadImg(photosOf(l)[0]);
 
   ctx.save();
   ctx.beginPath(); ctx.roundRect(0,0,W,H,R); ctx.clip();
@@ -886,7 +925,7 @@ function reviewData(year){
     fives: sorted(l.filter(x=>x.rating===5)),
     streak: longestStreak(l.map(x=>x.date)),
     first: sorted(l).slice(-1)[0], last: sorted(l)[0],
-    withPhoto: l.filter(x=>x.photo).length,
+    withPhoto: l.filter(x=>photosOf(x).length).length,
   };
 }
 function reviewSlides(d){
