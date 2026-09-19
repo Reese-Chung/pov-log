@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的觀點紀錄</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151A24" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="觀點紀錄">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF0F3; --card:#FFFFFF; --ink:#1E2940; --muted:#66708A; --line:#D5DAE2;
+  --accent:#2C6E8F; --star:#E0A21B; --danger:#B8413D;
+  --c-daily:#5B7FA6; --c-movie:#B8413D; --c-tv:#8A5AA8; --c-book:#2F7F6E;
+  --c-music:#C66A28; --c-food:#B58A1A; --c-cafe:#7A5B45; --c-travel:#2C6E8F;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#151A24; --card:#1F2633; --ink:#E6EAF1; --muted:#98A2B6; --line:#323B4B;
+    --accent:#6FB0D0; --star:#F0BC45; --danger:#E0716C;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#151A24; --card:#1F2633; --ink:#E6EAF1; --muted:#98A2B6; --line:#323B4B;
+  --accent:#6FB0D0; --star:#F0BC45; --danger:#E0716C;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:720px;margin:0 auto;padding:20px 16px 110px}
+
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:8px 0 18px}
+h1{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1.15;margin:0;letter-spacing:.02em}
+.sub{color:var(--muted);font-size:.9rem;margin-top:4px}
+.stat{text-align:right;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.stat b{display:block;font-family:var(--serif);font-size:1.6rem;color:var(--ink);line-height:1.1}
+
+.tabs{display:flex;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;margin-bottom:12px}
+.tabs button{flex:1;border:0;background:transparent;padding:8px 2px;border-radius:8px;font-weight:500;color:var(--muted);font-size:.9rem;white-space:nowrap}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.88rem;display:flex;align-items:center;gap:6px}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+.chip[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink);font-weight:700}
+
+.dayfilter{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px;font-size:.9rem}
+.dayfilter button{border:0;background:none;color:var(--accent);font-weight:500}
+
+/* feed: entries as index cards with a colored spine */
+.entry{display:grid;grid-template-columns:6px 58px 1fr;background:var(--card);border:1px solid var(--line);border-radius:6px;margin-bottom:10px;overflow:hidden;text-align:left;width:100%;padding:0}
+.spine{background:var(--c)}
+.date{padding:14px 0 0;text-align:center;border-right:1px dashed var(--line)}
+.date .d{font-family:var(--serif);font-size:1.6rem;font-weight:700;line-height:1}
+.date .m{font-size:.75rem;color:var(--muted)}
+.body{padding:12px 14px;min-width:0}
+.meta{display:flex;align-items:center;gap:8px;font-size:.8rem;color:var(--c)}
+.meta .cat{font-weight:700}
+.stars{color:var(--star);letter-spacing:1px}
+.title{font-family:var(--serif);font-weight:700;font-size:1.12rem;margin:2px 0 4px;word-break:break-word}
+.note{color:var(--muted);font-size:.93rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-wrap}
+.thumb{margin-top:10px;border-radius:4px;max-height:220px;object-fit:cover;width:100%}
+
+.empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.empty strong{display:block;font-family:var(--serif);color:var(--ink);font-size:1.15rem;margin-bottom:4px}
+
+/* calendar */
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.calhead h2{font-family:var(--serif);font-size:1.25rem;margin:0}
+.calhead button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:36px;height:36px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{text-align:center;font-size:.75rem;color:var(--muted);padding:4px 0}
+.cell{aspect-ratio:1/1.15;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:3px;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:flex-start;font-size:.8rem}
+.cell.out{visibility:hidden}
+.cell.today{border-color:var(--ink)}
+.cell.has{cursor:pointer}
+.cell .n{position:relative;z-index:1;font-weight:500;padding:0 3px;border-radius:4px}
+.cell.hasimg .n{background:var(--card)}
+.cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.9}
+.cell .dots{margin-top:auto;display:flex;gap:2px;flex-wrap:wrap;position:relative;z-index:1}
+.cell .dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+
+/* gallery */
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.tile{position:relative;aspect-ratio:3/4;border-radius:6px;overflow:hidden;border:1px solid var(--line);background:var(--card);padding:0;text-align:left}
+.tile img{width:100%;height:100%;object-fit:cover}
+.tile .cap{position:absolute;left:0;right:0;bottom:0;padding:20px 8px 8px;background:linear-gradient(transparent,rgba(10,14,22,.85));color:#fff;font-size:.82rem}
+.tile .cap b{display:block;font-family:var(--serif);font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.noimg{display:flex;flex-direction:column;justify-content:flex-end;padding:10px;border-top:6px solid var(--c)}
+.tile.noimg b{font-family:var(--serif);font-size:1.05rem}
+
+/* stats */
+.bars{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.bar{display:grid;grid-template-columns:4.5em 1fr 5.5em;align-items:center;gap:10px;margin:8px 0;font-size:.9rem}
+.bar .track{height:10px;background:var(--paper);border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--c);border-radius:5px}
+.bar .v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
+
+.fab{position:fixed;right:max(16px,calc(50% - 344px));bottom:calc(20px + env(safe-area-inset-bottom));background:var(--ink);color:var(--paper);border:0;border-radius:28px;padding:14px 22px;font-weight:700;box-shadow:0 6px 20px rgba(20,30,50,.25);z-index:5}
+
+/* sheet */
+dialog{border:0;padding:0;background:transparent;max-width:none;max-height:none;width:100%;height:100%;margin:0}
+dialog::backdrop{background:rgba(10,14,22,.5)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-width:640px;margin:0 auto;background:var(--card);color:var(--ink);border-radius:16px 16px 0 0;max-height:92vh;overflow:auto;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+@media (min-width:700px){.sheet{top:50%;bottom:auto;transform:translateY(-50%);border-radius:16px}}
+.sheet h3{font-family:var(--serif);font-size:1.3rem;margin:0 0 12px}
+label.f{display:block;font-size:.85rem;color:var(--muted);margin:12px 0 4px}
+.in{width:100%;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:10px 12px}
+textarea.in{min-height:110px;resize:vertical}
+.catpick{display:flex;flex-wrap:wrap;gap:6px}
+.rate{display:flex;gap:2px;align-items:center}
+.rate button{border:0;background:none;font-size:1.8rem;line-height:1;padding:2px;color:var(--line)}
+.rate button.on{color:var(--star)}
+.rate span{margin-left:8px;color:var(--muted);font-size:.85rem}
+.photo{display:flex;gap:10px;align-items:center}
+.photo img{width:72px;height:72px;object-fit:cover;border-radius:6px}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:9px 16px;font-weight:500}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.danger{color:var(--danger);border-color:transparent;background:none;padding-left:0}
+.actions{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:18px}
+.actions .grow{flex:1}
+.detail-img{border-radius:8px;margin:8px 0 12px;width:100%}
+.detail-note{white-space:pre-wrap;word-break:break-word}
+.err{color:var(--danger);font-size:.85rem;margin-top:8px}
+.cardopts{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--card);padding:6px 14px;font-size:.9rem}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.cardwrap{background:repeating-conic-gradient(var(--paper) 0 25%,transparent 0 50%) 0 0/16px 16px;border-radius:10px;padding:14px;display:flex;justify-content:center}
+.cardwrap canvas{display:block;max-width:100%;height:auto;filter:drop-shadow(0 4px 10px rgba(20,30,50,.18))}
+.cardwrap.bookmark canvas{max-height:58vh;width:auto}
+.actions .btn{white-space:nowrap}
+.rv-picker{display:flex;gap:8px;margin-bottom:12px}
+.rv{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 20px 16px;min-height:420px;display:flex;flex-direction:column;position:relative}
+.rv:focus{outline:none}
+.rv:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.rv-k{position:absolute;top:16px;right:18px;font-size:.78rem;color:var(--muted);letter-spacing:.1em}
+.rv-body{flex:1}
+.rv-lead{color:var(--muted);font-size:.95rem;margin:6px 0 2px}
+.rv-sub{color:var(--muted);font-size:.9rem;margin:10px 0 0}
+.rv-big{font-family:var(--serif);font-weight:700;font-size:3.4rem;line-height:1.15;margin:2px 0 10px}
+.rv-big span{font-family:var(--sans);font-size:1rem;font-weight:500;color:var(--muted);margin-left:8px}
+.rv-cover{padding-top:26px}
+.rv-yr{font-family:var(--serif);font-size:4.6rem;font-weight:700;line-height:1;color:var(--accent);letter-spacing:.04em}
+.rv-rank{margin-top:6px}
+.rv-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.95rem}
+.rv-row b{margin-left:auto;font-variant-numeric:tabular-nums}
+.rv-i{width:1.2em;color:var(--muted);font-size:.85rem}
+.rv-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.rv-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rv-row .stars{font-size:.8rem}
+.rv-months{display:flex;align-items:flex-end;gap:4px;height:120px;margin-top:8px}
+.rv-m{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px}
+.rv-m span{font-size:.7rem;color:var(--muted)}
+.rv-bar{width:100%;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px}
+.rv-pair{display:grid;gap:10px;margin-top:10px}
+.rv-card{border-left:4px solid var(--c);background:var(--paper);border-radius:0 8px 8px 0;padding:10px 14px}
+.rv-card span{font-size:.8rem;color:var(--muted)}
+.rv-card b{display:block;font-family:var(--serif);font-size:1.15rem;margin:2px 0}
+.rv-card i{font-style:normal;color:var(--star);font-size:.85rem}
+.rv-nav{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.rv-nav .btn{width:44px;padding:6px 0;font-size:1.2rem}
+.rv-nav .btn[disabled]{opacity:.35}
+.rv-dots{display:flex;gap:6px}
+.rv-dots i{width:7px;height:7px;border-radius:50%;background:var(--line)}
+.rv-dots i.on{background:var(--ink)}
+.wish{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:8px;padding:12px 14px;margin-bottom:10px}
+.wish-main{flex:1;min-width:200px}
+.wish .meta{--c:var(--muted);font-size:.8rem;gap:10px}
+.wish .title{margin:2px 0 0}
+.wish .note{font-size:.9rem;-webkit-line-clamp:2}
+.wish-act{display:flex;gap:6px;flex-wrap:wrap}
+.wish-act .btn{padding:6px 12px;font-size:.9rem}
+.wish-act .btn.danger{padding-left:6px}
+.otd{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.otd-h{display:flex;align-items:center;justify-content:space-between;font-size:.85rem;color:var(--muted);letter-spacing:.06em;margin-bottom:6px}
+.otd-h button{border:0;background:none;color:var(--muted);font-size:.9rem;padding:2px 4px}
+.otd-i{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:6px 0;border-top:1px dashed var(--line)}
+.otd-i:first-of-type{border-top:0}
+.otd-i img{width:44px;height:44px;border-radius:6px;object-fit:cover;flex:none}
+.otd-dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none;margin:0 17px}
+.otd-txt{min-width:0}
+.otd-txt b{display:block;font-family:var(--serif);font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.otd-txt i{font-style:normal;font-size:.82rem;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:90px;background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:8px;font-size:.9rem;z-index:50;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>我的觀點紀錄</h1>
+      <div class="sub" id="sub">載入中…</div>
+    </div>
+    <div class="stat"><b id="total">0</b>筆紀錄<br><button class="btn" id="backup" style="margin-top:6px;padding:4px 10px;font-size:.82rem">備份</button></div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-v="feed" aria-pressed="true">動態</button>
+    <button data-v="cal" aria-pressed="false">月曆</button>
+    <button data-v="gallery" aria-pressed="false">相簿</button>
+    <button data-v="wish" aria-pressed="false">想看</button>
+    <button data-v="review" aria-pressed="false">回顧</button>
+    <button data-v="stats" aria-pressed="false">統計</button>
+  </nav>
+  <div class="chips" id="chips"></div>
+  <main id="main"></main>
+</div>
+
+<button class="fab" id="fab">＋ 新增紀錄</button>
+
+<dialog id="dlg"><div class="sheet" id="sheet"></div></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const CATS = [
+  {id:'daily', name:'日常', c:'var(--c-daily)'},
+  {id:'movie', name:'電影', c:'var(--c-movie)'},
+  {id:'tv',    name:'影集', c:'var(--c-tv)'},
+  {id:'book',  name:'書籍', c:'var(--c-book)'},
+  {id:'music', name:'音樂', c:'var(--c-music)'},
+  {id:'food',  name:'美食', c:'var(--c-food)'},
+  {id:'cafe',  name:'咖啡廳', c:'var(--c-cafe)'},
+  {id:'travel',name:'旅行', c:'var(--c-travel)'},
+];
+const catOf = id => CATS.find(c=>c.id===id) || CATS[0];
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const pad = n => String(n).padStart(2,'0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const starStr = r => r ? '★'.repeat(r)+'☆'.repeat(5-r) : '';
+
+const state = { logs:[], view:'feed', cat:'all', day:null, month:new Date(), ready:false, reviewYear:null, reviewPage:0, otdHidden:false };
+state.month.setDate(1);
+
+/* ---------- storage: db (per-viewer private) with localStorage fallback ---------- */
+const LS_KEY = 'povlog.v1';
+const store = {
+  mode:'local', col:null,
+  async init(){
+    let db=null, user=null;
+    try{ [db,user] = await Promise.all([window.claude?.use?.('db'), window.claude?.use?.('user')]); }catch(e){}
+    let uid=null;
+    try{ uid = user ? await user.id() : null; }catch(e){}
+    if(db && uid){
+      this.mode='db';
+      this.col = db.collection('data/users/'+uid);
+      this.col.onSnapshot(snap=>{
+        state.logs = snap.docs.map(d=>({id:d.id, ...d.data()}));
+        loaded();
+      }, err=>{ toast('同步中斷，請重新整理頁面'); });
+    } else {
+      this.mode='local';
+      try{ state.logs = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ state.logs=[]; }
+      loaded();
+    }
+  },
+  saveLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state.logs)); }catch(e){ toast('儲存空間不足，請移除部分照片'); } },
+  async put(log){
+    const {id, ...data} = log;
+    if(this.mode==='db'){ await this.col.doc(id).set(data); }
+    else{
+      const i = state.logs.findIndex(l=>l.id===id);
+      if(i>=0) state.logs[i]=log; else state.logs.push(log);
+      this.saveLocal(); render();
+    }
+  },
+  async del(id){
+    if(this.mode==='db'){ await this.col.doc(id).delete(); }
+    else{ state.logs = state.logs.filter(l=>l.id!==id); this.saveLocal(); render(); }
+  }
+};
+function loaded(){
+  state.ready = true;
+  $('#sub').textContent = store.mode==='db' ? '紀錄已同步到你的帳號，只有你看得到' : '紀錄只存在你這台裝置的瀏覽器，別人看不到';
+  render();
+}
+const init = () => {
+  store.mode='local';
+  try{ state.logs = JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(e){ state.logs=[]; }
+  loaded();
+};
+
+/* ---------- rendering ---------- */
+function sorted(list){ return [...list].sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.created||0)-(a.created||0)); }
+function records(){ return state.logs.filter(l=>!l.wish); }
+function wishes(){ return state.logs.filter(l=>l.wish); }
+function filtered(){
+  let l = records();
+  if(state.cat!=='all') l = l.filter(x=>x.cat===state.cat);
+  return sorted(l);
+}
+
+function renderChips(){
+  const src = state.view==='wish' ? wishes() : records();
+  const counts = {}; src.forEach(l=>counts[l.cat]=(counts[l.cat]||0)+1);
+  $('#chips').innerHTML = `<button class="chip" data-c="all" aria-pressed="${state.cat==='all'}">全部</button>` +
+    CATS.map(c=>`<button class="chip" data-c="${c.id}" aria-pressed="${state.cat===c.id}"><span class="dot" style="background:${c.c}"></span>${c.name}${counts[c.id]?` ${counts[c.id]}`:''}</button>`).join('');
+  $('#chips').style.display = (state.view==='stats'||state.view==='review') ? 'none' : '';
+}
+
+function entryHTML(l){
+  const c = catOf(l.cat); const d = new Date(l.date+'T00:00');
+  return `<button class="entry" data-open="${l.id}" style="--c:${c.c}">
+    <div class="spine"></div>
+    <div class="date"><div class="d">${d.getDate()}</div><div class="m">${d.getMonth()+1}月</div><div class="m">${d.getFullYear()}</div></div>
+    <div class="body">
+      <div class="meta"><span class="cat">${c.name}</span>${l.rating?`<span class="stars">${starStr(l.rating)}</span>`:''}</div>
+      <div class="title">${esc(l.title)}</div>
+      ${l.note?`<div class="note">${esc(l.note)}</div>`:''}
+      ${l.photo?`<img class="thumb" src="${l.photo}" alt="">`:''}
+    </div></button>`;
+}
+
+function emptyHTML(){
+  return state.cat==='all' && !state.day
+    ? `<div class="empty"><strong>還沒有任何紀錄</strong>今天看了什麼、讀了什麼、吃了什麼？點右下角新增第一筆。</div>`
+    : `<div class="empty"><strong>這個分類還沒有紀錄</strong>切換分類，或新增一筆。</div>`;
+}
+
+function onThisDay(){
+  const now = new Date(), md = `${pad(now.getMonth()+1)}-${pad(now.getDate())}`, y = now.getFullYear();
+  return sorted(records().filter(l=> l.date.slice(5)===md && Number(l.date.slice(0,4)) < y));
+}
+function onThisDayHTML(){
+  if(state.otdHidden || state.cat!=='all' || state.day) return '';
+  const l = onThisDay(); if(!l.length) return '';
+  const y = new Date().getFullYear();
+  return `<section class="otd">
+    <div class="otd-h"><span>去年的今天</span><button data-otdclose aria-label="關閉">✕</button></div>
+    ${l.slice(0,3).map(x=>{
+      const c = catOf(x.cat), ago = y - Number(x.date.slice(0,4));
+      return `<button class="otd-i" data-open="${x.id}" style="--c:${c.c}">
+        ${x.photo?`<img src="${x.photo}" alt="">`:`<span class="otd-dot"></span>`}
+        <span class="otd-txt"><b>${esc(x.title)}</b><i>${ago} 年前 · ${c.name}${x.rating?' · '+'★'.repeat(x.rating):''}</i></span></button>`;
+    }).join('')}
+    ${l.length>3?`<p class="sub" style="margin:6px 0 0">另有 ${l.length-3} 筆同一天的紀錄</p>`:''}
+  </section>`;
+}
+
+function renderFeed(){
+  let list = filtered();
+  let head = '';
+  if(state.day){
+    list = list.filter(l=>l.date===state.day);
+    head = `<div class="dayfilter"><span>${state.day} 的紀錄</span><button data-clearday>顯示全部</button></div>`;
+  }
+  return onThisDayHTML() + head + (list.length ? list.map(entryHTML).join('') : emptyHTML());
+}
+
+function renderCal(){
+  const m = state.month, y = m.getFullYear(), mo = m.getMonth();
+  const first = new Date(y,mo,1).getDay(), days = new Date(y,mo+1,0).getDate();
+  const byDay = {};
+  filtered().forEach(l=>{ (byDay[l.date] ||= []).push(l); });
+  const today = ymd(new Date());
+  let cells = '';
+  for(let i=0;i<first;i++) cells += `<div class="cell out"></div>`;
+  for(let d=1; d<=days; d++){
+    const key = `${y}-${pad(mo+1)}-${pad(d)}`; const items = byDay[key]||[];
+    const img = items.find(x=>x.photo);
+    cells += `<div class="cell${items.length?' has':''}${img?' hasimg':''}${key===today?' today':''}" ${items.length?`data-day="${key}" role="button" tabindex="0" aria-label="${key}，${items.length} 筆"`:''}>
+      ${img?`<img src="${img.photo}" alt="">`:''}
+      <span class="n">${d}</span>
+      <span class="dots">${items.slice(0,6).map(x=>`<i style="--c:${catOf(x.cat).c}"></i>`).join('')}</span>
+    </div>`;
+  }
+  const monthCount = Object.keys(byDay).filter(k=>k.startsWith(`${y}-${pad(mo+1)}`)).reduce((s,k)=>s+byDay[k].length,0);
+  return `<div class="calhead"><button data-mon="-1" aria-label="上個月">‹</button>
+    <h2>${y} 年 ${mo+1} 月<span class="sub" style="font-family:var(--sans);font-size:.85rem;font-weight:400"> · ${monthCount} 筆</span></h2>
+    <button data-mon="1" aria-label="下個月">›</button></div>
+    <div class="grid">${['日','一','二','三','四','五','六'].map(w=>`<div class="wd">${w}</div>`).join('')}${cells}</div>`;
+}
+
+function renderGallery(){
+  const list = filtered();
+  if(!list.length) return emptyHTML();
+  return `<div class="gallery">${list.map(l=>{
+    const c = catOf(l.cat);
+    return l.photo
+      ? `<button class="tile" data-open="${l.id}"><img src="${l.photo}" alt="${esc(l.title)}"><div class="cap"><b>${esc(l.title)}</b>${c.name}${l.rating?' '+'★'.repeat(l.rating):''}</div></button>`
+      : `<button class="tile noimg" data-open="${l.id}" style="--c:${c.c}"><span style="color:${c.c};font-size:.8rem;font-weight:700">${c.name}</span><b>${esc(l.title)}</b><span class="stars">${starStr(l.rating)}</span></button>`;
+  }).join('')}</div>`;
+}
+
+function backupHTML(){
+  return `<div class="bars" style="margin-top:14px">
+    <h2 style="font-family:var(--serif);font-size:1.1rem;margin:0 0 4px">備份</h2>
+    <p class="sub" style="margin:0 0 12px">紀錄只存在這個瀏覽器。定期匯出備份檔，換裝置或清除瀏覽器資料後，可以用匯入還原。</p>
+    <button class="btn primary" data-openbackup>匯出或匯入備份</button>
+  </div>`;
+}
+
+function renderStats(){
+  return statsBody() + backupHTML();
+}
+function statsBody(){
+  if(!records().length) return emptyHTML();
+  const rows = CATS.map(c=>{
+    const l = records().filter(x=>x.cat===c.id);
+    const rated = l.filter(x=>x.rating);
+    const avg = rated.length ? (rated.reduce((s,x)=>s+x.rating,0)/rated.length).toFixed(1) : '–';
+    return {c, n:l.length, avg};
+  });
+  const max = Math.max(...rows.map(r=>r.n),1);
+  const thisYear = String(new Date().getFullYear());
+  const yr = records().filter(l=>(l.date||'').startsWith(thisYear)).length;
+  return `<div class="bars">
+    <div class="sub" style="margin:0 0 6px">今年 ${yr} 筆 · 右欄為平均評分</div>
+    ${rows.map(r=>`<div class="bar" style="--c:${r.c.c}"><span>${r.c.name}</span>
+      <div class="track"><div class="fill" style="width:${r.n/max*100}%"></div></div>
+      <span class="v">${r.n} 筆 · ★${r.avg}</span></div>`).join('')}
+  </div>`;
+}
+
+function render(){
+  if(!state.ready){ $('#main').innerHTML = `<div class="empty">載入中…</div>`; return; }
+  $('#total').textContent = records().length;
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.v===state.view));
+  $('#fab').textContent = state.view==='wish' ? '＋ 加入想看' : '＋ 新增紀錄';
+  $('#fab').style.display = (state.view==='stats'||state.view==='review') ? 'none' : '';
+  renderChips();
+  const v = state.view;
+  $('#main').innerHTML = v==='feed'?renderFeed(): v==='cal'?renderCal(): v==='gallery'?renderGallery(): v==='review'?renderReview(): v==='wish'?renderWish(): renderStats();
+}
+
+/* ---------- events ---------- */
+$('#tabs').onclick = e => { const b=e.target.closest('button'); if(!b) return; state.view=b.dataset.v; if(b.dataset.v!=='feed') state.day=null; render(); };
+$('#chips').onclick = e => { const b=e.target.closest('[data-c]'); if(!b) return; state.cat=b.dataset.c; render(); };
+$('#main').addEventListener('click', e=>{
+  const o = e.target.closest('[data-open]'); if(o){ openDetail(o.dataset.open); return; }
+  const mon = e.target.closest('[data-mon]'); if(mon){ state.month.setMonth(state.month.getMonth()+Number(mon.dataset.mon)); render(); return; }
+  const day = e.target.closest('[data-day]'); if(day){ state.day=day.dataset.day; state.view='feed'; render(); return; }
+  if(e.target.closest('[data-otdclose]')){ state.otdHidden=true; render(); return; }
+  const ry = e.target.closest('[data-ry]'); if(ry){ state.reviewYear=ry.dataset.ry; state.reviewPage=0; render(); return; }
+  const rp = e.target.closest('[data-rp]'); if(rp){ state.reviewPage=Math.max(0,(state.reviewPage||0)+Number(rp.dataset.rp)); render(); $('#rv')?.focus(); return; }
+  const wd = e.target.closest('[data-done]'); if(wd){ const w=state.logs.find(x=>x.id===wd.dataset.done); if(w) finishWish(w); return; }
+  const we = e.target.closest('[data-wedit]'); if(we){ const w=state.logs.find(x=>x.id===we.dataset.wedit); if(w) openWishForm(w); return; }
+  const wx = e.target.closest('[data-wdel]'); if(wx){
+    const w=state.logs.find(x=>x.id===wx.dataset.wdel);
+    if(w && confirm(`從想看清單移除「${w.title}」？`)) store.del(w.id).catch(()=>toast('刪除失敗，請再試一次'));
+    return; }
+  if(e.target.closest('[data-openbackup]')){ openBackup(); return; }
+  if(e.target.closest('[data-clearday]')){ state.day=null; render(); }
+});
+
+document.addEventListener('keydown', e=>{
+  if(state.view!=='review' || dlg.open) return;
+  if(e.key==='ArrowRight'){ const b=$('[data-rp="1"]'); if(b && !b.disabled) b.click(); }
+  if(e.key==='ArrowLeft'){ const b=$('[data-rp="-1"]'); if(b && !b.disabled) b.click(); }
+});
+let tx=null;
+$('#main').addEventListener('touchstart', e=>{ tx = state.view==='review' ? e.changedTouches[0].clientX : null; }, {passive:true});
+$('#main').addEventListener('touchend', e=>{
+  if(tx===null) return; const dx = e.changedTouches[0].clientX - tx; tx=null;
+  if(Math.abs(dx) < 50) return;
+  const b = $(dx<0 ? '[data-rp="1"]' : '[data-rp="-1"]'); if(b && !b.disabled) b.click();
+}, {passive:true});
+$('#main').addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key===' ') && e.target.dataset.day){ e.preventDefault(); e.target.click(); } });
+$('#fab').onclick = () => state.view==='wish' ? openWishForm() : openForm();
+
+const dlg = $('#dlg');
+dlg.addEventListener('click', e=>{ if(e.target===dlg) dlg.close(); });
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function openDetail(id){
+  const l = state.logs.find(x=>x.id===id); if(!l) return;
+  const c = catOf(l.cat);
+  $('#sheet').innerHTML = `
+    <div class="meta" style="--c:${c.c}"><span class="cat">${c.name}</span><span style="color:var(--muted)">${l.date}</span></div>
+    <h3 style="margin-top:4px">${esc(l.title)}</h3>
+    ${l.rating?`<div class="stars" style="font-size:1.2rem">${starStr(l.rating)}</div>`:''}
+    ${l.photo?`<img class="detail-img" src="${l.photo}" alt="">`:''}
+    ${l.note?`<p class="detail-note">${esc(l.note)}</p>`:''}
+    <div class="actions"><button class="btn danger" id="del">刪除</button><span class="grow"></span>
+      <button class="btn" id="close">關閉</button><button class="btn" id="mkcard">製作卡片</button><button class="btn primary" id="edit">編輯</button></div>`;
+  $('#close').onclick = ()=>dlg.close();
+  $('#edit').onclick = ()=>openForm(l);
+  $('#mkcard').onclick = ()=>openCard(l);
+  $('#del').onclick = async ()=>{
+    if(!confirm('確定刪除這筆紀錄？刪除後無法復原。')) return;
+    try{ await store.del(l.id); dlg.close(); toast('已刪除'); }catch(e){ toast('刪除失敗，請再試一次'); }
+  };
+  if(!dlg.open) dlg.showModal();
+}
+
+function openForm(existing, opts={}){
+  const f = existing ? {...existing} : {id:'', cat: state.cat!=='all'?state.cat:'daily', title:'', date: state.day || ymd(new Date()), rating:0, note:'', photo:'', ...(opts.prefill||{})};
+  const draw = () => {
+    $('#sheet').innerHTML = `
+      <h3>${existing?'編輯紀錄':'新增紀錄'}</h3>
+      <label class="f">分類</label>
+      <div class="catpick">${CATS.map(c=>`<button type="button" class="chip" data-pc="${c.id}" aria-pressed="${f.cat===c.id}"><span class="dot" style="background:${c.c}"></span>${c.name}</button>`).join('')}</div>
+      <label class="f" for="t">標題</label>
+      <input class="in" id="t" maxlength="120" placeholder="例如：電影名稱、書名、店名" value="${esc(f.title)}">
+      <label class="f" for="dt">日期</label>
+      <input class="in" id="dt" type="date" value="${f.date}">
+      <label class="f">評分</label>
+      <div class="rate" id="rate">${[1,2,3,4,5].map(n=>`<button type="button" data-r="${n}" class="${n<=f.rating?'on':''}" aria-label="${n} 顆星">★</button>`).join('')}<span>${f.rating?f.rating+' / 5':'點選給分，再點一次取消'}</span></div>
+      <label class="f" for="nt">心得</label>
+      <textarea class="in" id="nt" maxlength="5000" placeholder="寫下你的觀點">${esc(f.note)}</textarea>
+      <label class="f">照片</label>
+      <div class="photo">${f.photo?`<img src="${f.photo}" alt="">`:''}
+        <label class="btn" style="display:inline-block">${f.photo?'更換照片':'選擇照片'}<input type="file" accept="image/*" id="ph" hidden></label>
+        ${f.photo?`<button type="button" class="btn danger" id="rmph">移除</button>`:''}</div>
+      <div class="err" id="err"></div>
+      <div class="actions"><button class="btn" id="cancel">取消</button><button class="btn primary" id="save">儲存</button></div>`;
+    const sync = ()=>{ f.title=$('#t').value; f.date=$('#dt').value; f.note=$('#nt').value; };
+    $('#sheet').querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>{ sync(); f.cat=b.dataset.pc; draw(); });
+    $('#rate').querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{ sync(); const r=+b.dataset.r; f.rating = f.rating===r?0:r; draw(); });
+    $('#ph').onchange = async e=>{ sync(); const file=e.target.files[0]; if(!file) return;
+      try{ f.photo = await shrink(file); draw(); }catch(err){ $('#err').textContent='無法讀取這張照片，請換一張試試。'; } };
+    if($('#rmph')) $('#rmph').onclick = ()=>{ sync(); f.photo=''; draw(); };
+    $('#cancel').onclick = ()=>dlg.close();
+    $('#save').onclick = async ()=>{
+      sync();
+      if(!f.title.trim()){ $('#err').textContent='請輸入標題。'; $('#t').focus(); return; }
+      if(!f.date){ $('#err').textContent='請選擇日期。'; return; }
+      const log = {...f, title:f.title.trim(), id: f.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,7)), created: f.created || Date.now()};
+      $('#save').disabled = true;
+      try{ await store.put(log); if(opts.afterSave) await opts.afterSave(); dlg.close(); toast(opts.doneMsg || (existing?'已更新':'已儲存')); }
+      catch(e){ $('#save').disabled=false; $('#err').textContent = e?.code==='quota_exceeded' ? '紀錄數量已達上限，請先刪除部分紀錄。' : '儲存失敗，請再試一次。'; }
+    };
+  };
+  draw();
+  if(!dlg.open) dlg.showModal();
+  if(!existing) setTimeout(()=>$('#t')?.focus(), 50);
+}
+
+/* compress photo to fit comfortably inside one document */
+function shrink(file){
+  return new Promise((res,rej)=>{
+    const img = new Image(); const url = URL.createObjectURL(file);
+    img.onload = ()=>{
+      let max = 900, q = .78, out;
+      for(let i=0;i<6;i++){
+        const s = Math.min(1, max/Math.max(img.width,img.height));
+        const cv = document.createElement('canvas');
+        cv.width = Math.round(img.width*s); cv.height = Math.round(img.height*s);
+        cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+        out = cv.toDataURL('image/jpeg', q);
+        if(out.length < 180000) break;
+        max = Math.round(max*.8); q = Math.max(.5, q-.06);
+      }
+      URL.revokeObjectURL(url); res(out);
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(); };
+    img.src = url;
+  });
+}
+
+/* ---------- backup: export / import ---------- */
+let downloadsP = null;
+function getDownloads(){ if(!downloadsP) downloadsP = (window.claude?.use ? window.claude.use('downloads') : Promise.resolve(null)).catch(()=>null); return downloadsP; }
+getDownloads();
+
+function backupJSON(){ return JSON.stringify({app:'povlog', version:1, exported:new Date().toISOString(), logs:state.logs}); }
+
+function mergeLogs(incoming){
+  if(!Array.isArray(incoming)) throw new Error('bad');
+  const valid = incoming.filter(l=>l && typeof l.id==='string' && typeof l.title==='string' && typeof l.date==='string');
+  const map = new Map(state.logs.map(l=>[l.id,l]));
+  let added=0, updated=0;
+  valid.forEach(l=>{
+    const clean = {id:l.id, cat: CATS.some(c=>c.id===l.cat)?l.cat:'daily', title:l.title.slice(0,120), date:l.date.slice(0,10),
+      rating: Math.max(0,Math.min(5,Number(l.rating)||0)), note:String(l.note||'').slice(0,5000),
+      photo: typeof l.photo==='string' && l.photo.startsWith('data:image/') ? l.photo : '', created:Number(l.created)||Date.now()};
+    if(l.wish) clean.wish = true;
+    map.has(l.id) ? updated++ : added++;
+    map.set(l.id, clean);
+  });
+  state.logs = [...map.values()];
+  store.saveLocal(); render();
+  return {added, updated, skipped: incoming.length-valid.length};
+}
+
+function importText(text){
+  let data; try{ data = JSON.parse(text); }catch(e){ throw new Error('這不是有效的備份檔。'); }
+  const logs = Array.isArray(data) ? data : data?.logs;
+  if(!Array.isArray(logs)) throw new Error('備份檔裡找不到紀錄資料。');
+  return mergeLogs(logs);
+}
+
+async function openBackup(){
+  const dl = await getDownloads();
+  const n = state.logs.length;
+  $('#sheet').innerHTML = `
+    <h3>備份與還原</h3>
+    <p class="sub" style="margin:0 0 4px">紀錄只存在這個瀏覽器。建議定期匯出備份，換裝置或清除瀏覽器資料後才能還原。</p>
+    <label class="f">匯出（目前 ${n} 筆）</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn primary" id="exfile" ${n?'':'disabled'}>下載備份檔</button>
+      <button class="btn" id="excopy" ${n?'':'disabled'}>複製備份文字</button>
+    </div>
+    <label class="f">匯入</label>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <label class="btn" style="display:inline-block">選擇備份檔<input type="file" accept=".json,application/json,text/plain" id="imfile" hidden></label>
+      <span class="sub" style="margin:0">或把備份文字貼在下方</span>
+    </div>
+    <textarea class="in" id="imtext" style="min-height:80px;margin-top:8px" placeholder="貼上備份文字"></textarea>
+    <p class="sub" style="margin:6px 0 0">匯入會合併到現有紀錄；相同的紀錄會以備份檔的版本為準，不會重複。</p>
+    <div class="err" id="err"></div>
+    <div class="actions"><button class="btn" id="close">關閉</button><button class="btn primary" id="impaste">匯入貼上的文字</button></div>`;
+  const err = m => $('#err').textContent = m;
+  const done = r => { dlg.close(); toast(`已匯入：新增 ${r.added} 筆、更新 ${r.updated} 筆${r.skipped?`，略過 ${r.skipped} 筆格式不符`:''}`); };
+  $('#close').onclick = ()=>dlg.close();
+  $('#exfile').onclick = async ()=>{
+    const filename = `觀點紀錄備份-${ymd(new Date())}.json`;
+    if(dl){
+      try{ await dl.save({filename, data: backupJSON()}); toast('已下載備份檔'); }
+      catch(e){ if(e?.code!=='declined') err('無法下載，請改用「複製備份文字」，貼到記事本保存。'); }
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([backupJSON()],{type:'application/json'}));
+    a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+    toast('已下載備份檔');
+  };
+  $('#excopy').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(backupJSON()); toast('已複製，請貼到記事本或雲端筆記保存'); }
+    catch(e){ $('#imtext').value = backupJSON(); $('#imtext').select(); err('無法自動複製，文字已放入下方欄位，請手動全選複製。'); }
+  };
+  $('#imfile').onchange = e=>{
+    const f = e.target.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{ try{ done(importText(rd.result)); }catch(x){ err(x.message||'匯入失敗。'); } };
+    rd.onerror = ()=>err('無法讀取這個檔案。');
+    rd.readAsText(f);
+  };
+  $('#impaste').onclick = ()=>{
+    const t = $('#imtext').value.trim(); if(!t){ err('請先貼上備份文字，或選擇備份檔。'); return; }
+    try{ done(importText(t)); }catch(x){ err(x.message||'匯入失敗。'); }
+  };
+  if(!dlg.open) dlg.showModal();
+}
+$('#backup').onclick = openBackup;
+
+/* ---------- ticket / bookmark cards ---------- */
+const CAT_HEX = {daily:'#5B7FA6',movie:'#B8413D',tv:'#8A5AA8',book:'#2F7F6E',music:'#C66A28',food:'#B58A1A',cafe:'#7A5B45',travel:'#2C6E8F'};
+const CARD_THEMES = {
+  light:{bg:'#F4F2EC', ink:'#1E2940', muted:'#6B7285', line:'#C9CCD3'},
+  dark: {bg:'#1E2940', ink:'#F4F2EC', muted:'#A9B1C4', line:'#46506A'},
+};
+const SERIF = '"Noto Serif TC","Songti TC","PMingLiU",serif';
+const SANS  = '"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif';
+
+function loadImg(src){ return new Promise(r=>{ if(!src) return r(null); const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; }); }
+function serialOf(id){ let h=7; for(const ch of id) h=(h*31+ch.charCodeAt(0))>>>0; return String(h%1000000).padStart(6,'0'); }
+function wrapText(ctx, text, maxW, maxLines){
+  const lines=[]; const paras=String(text||'').split('\n');
+  for(const p of paras){
+    let line='';
+    for(const ch of p){
+      if(ctx.measureText(line+ch).width > maxW && line){ lines.push(line); line = ch.trim()?ch:''; }
+      else line += ch;
+    }
+    lines.push(line);
+  }
+  const out = lines.filter((l,i)=>l || i<lines.length-1);
+  if(out.length > maxLines){
+    const cut = out.slice(0,maxLines); let last = cut[maxLines-1];
+    while(last && ctx.measureText(last+'…').width > maxW) last = last.slice(0,-1);
+    cut[maxLines-1] = last+'…'; return cut;
+  }
+  return out;
+}
+function coverImg(ctx, img, x, y, w, h){
+  const s = Math.max(w/img.width, h/img.height), iw=img.width*s, ih=img.height*s;
+  ctx.drawImage(img, x+(w-iw)/2, y+(h-ih)/2, iw, ih);
+}
+function starsText(r){ return r ? '★'.repeat(r)+'☆'.repeat(5-r) : '未評分'; }
+
+async function ensureFonts(text){
+  try{
+    await Promise.race([
+      Promise.all([document.fonts.load(`700 40px "Noto Serif TC"`, text), document.fonts.load(`500 20px "Noto Sans TC"`, text+'0123456789')]),
+      new Promise(r=>setTimeout(r,2500))
+    ]);
+  }catch(e){}
+}
+
+async function drawTicket(cv, l, t){
+  const W=1200, H=520, S=2, STUB=880, R=26;
+  cv.width=W*S; cv.height=H*S;
+  const ctx=cv.getContext('2d'); ctx.scale(S,S);
+  const c=catOf(l.cat), col=CAT_HEX[l.cat], d=new Date(l.date+'T00:00');
+  const img = await loadImg(l.photo);
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(0,0,W,H,R); ctx.clip();
+  ctx.fillStyle=t.bg; ctx.fillRect(0,0,W,H);
+
+  let x0;
+  if(img){ coverImg(ctx,img,0,0,300,H); ctx.fillStyle=col; ctx.fillRect(300,0,8,H); x0=348; }
+  else { ctx.fillStyle=col; ctx.fillRect(0,0,28,H); x0=72; }
+  const maxW = STUB-x0-40;
+
+  ctx.fillStyle=col; ctx.font=`700 24px ${SANS}`; ctx.textBaseline='alphabetic';
+  ctx.fillText(l.cat==='movie'||l.cat==='tv' ? `${c.name}入場券` : `${c.name}紀錄票`, x0, 78);
+
+  ctx.fillStyle=t.ink; ctx.font=`700 60px ${SERIF}`;
+  const tl = wrapText(ctx, l.title, maxW, 2);
+  tl.forEach((s,i)=>ctx.fillText(s, x0, 160+i*74));
+  let y = 160 + tl.length*74 - 16;
+
+  if(l.note){
+    ctx.fillStyle=t.muted; ctx.font=`400 26px ${SERIF}`;
+    const nl = wrapText(ctx, l.note.replace(/\n+/g,' '), maxW, 2);
+    nl.forEach((s,i)=>ctx.fillText(s, x0, y+20+i*40));
+  }
+
+  // info row
+  ctx.strokeStyle=t.line; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(x0,392); ctx.lineTo(STUB-40,392); ctx.stroke();
+  const cols=[['日期',`${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`],['評分',starsText(l.rating)],['編號',serialOf(l.id)]];
+  const cw = maxW/3;
+  cols.forEach(([k,v],i)=>{
+    ctx.fillStyle=t.muted; ctx.font=`500 20px ${SANS}`; ctx.fillText(k, x0+i*cw, 432);
+    ctx.fillStyle = k==='評分' && l.rating ? '#E0A21B' : t.ink; ctx.font=`500 28px ${SANS}`; ctx.fillText(v, x0+i*cw, 474);
+  });
+
+  // stub
+  ctx.fillStyle=col; ctx.globalAlpha=.1; ctx.fillRect(STUB,0,W-STUB,H); ctx.globalAlpha=1;
+  ctx.textAlign='center'; const sx=STUB+(W-STUB)/2;
+  ctx.fillStyle=t.muted; ctx.font=`500 22px ${SANS}`; ctx.fillText(`No. ${serialOf(l.id)}`, sx, 90);
+  ctx.fillStyle=t.ink; ctx.font=`700 150px ${SERIF}`; ctx.fillText(String(d.getDate()), sx, 270);
+  ctx.font=`500 30px ${SANS}`; ctx.fillText(`${d.getFullYear()} 年 ${d.getMonth()+1} 月`, sx, 322);
+  ctx.fillStyle=col; ctx.font=`700 26px ${SANS}`; ctx.fillText(c.name, sx, 450);
+  ctx.textAlign='left';
+
+  // perforation
+  ctx.strokeStyle=t.line; ctx.lineWidth=3; ctx.setLineDash([2,12]); ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(STUB,40); ctx.lineTo(STUB,H-40); ctx.stroke(); ctx.setLineDash([]);
+  ctx.restore();
+
+  // notches
+  ctx.globalCompositeOperation='destination-out';
+  [[STUB,0],[STUB,H]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(x,y,24,0,Math.PI*2); ctx.fill(); });
+  ctx.globalCompositeOperation='source-over';
+}
+
+async function drawBookmark(cv, l, t){
+  const W=480, H=1320, S=2, R=30, P=48;
+  cv.width=W*S; cv.height=H*S;
+  const ctx=cv.getContext('2d'); ctx.scale(S,S);
+  const c=catOf(l.cat), col=CAT_HEX[l.cat], d=new Date(l.date+'T00:00');
+  const img = await loadImg(l.photo);
+
+  ctx.save();
+  ctx.beginPath(); ctx.roundRect(0,0,W,H,R); ctx.clip();
+  ctx.fillStyle=t.bg; ctx.fillRect(0,0,W,H);
+
+  let y;
+  if(img){ coverImg(ctx,img,0,0,W,480); ctx.fillStyle=col; ctx.fillRect(0,480,W,10); y=560; }
+  else{
+    ctx.fillStyle=col; ctx.fillRect(0,0,W,300);
+    ctx.fillStyle='rgba(255,255,255,.9)'; ctx.font=`700 150px ${SERIF}`; ctx.textAlign='center';
+    ctx.fillText([...l.title][0]||'', W/2, 262); ctx.textAlign='left';
+    y=380;
+  }
+
+  ctx.fillStyle=col; ctx.font=`700 22px ${SANS}`; ctx.fillText(c.name, P, y);
+  ctx.fillStyle=t.ink; ctx.font=`700 46px ${SERIF}`;
+  const tl = wrapText(ctx, l.title, W-P*2, 3);
+  tl.forEach((s,i)=>ctx.fillText(s, P, y+64+i*60)); y += 64 + (tl.length-1)*60 + 50;
+
+  ctx.fillStyle = l.rating ? '#E0A21B' : t.muted; ctx.font=`500 28px ${SANS}`; ctx.fillText(starsText(l.rating), P, y); y+=40;
+
+  const bottom = H-150;
+  if(l.note && y < bottom-60){
+    ctx.strokeStyle=col; ctx.lineWidth=4; 
+    ctx.fillStyle=t.ink; ctx.font=`400 27px ${SERIF}`;
+    const maxLines = Math.max(1, Math.floor((bottom-40-y)/46));
+    const nl = wrapText(ctx, l.note, W-P*2-24, maxLines);
+    ctx.beginPath(); ctx.moveTo(P,y+12); ctx.lineTo(P,y+12+nl.length*46-14); ctx.stroke();
+    nl.forEach((s,i)=>ctx.fillText(s, P+24, y+46+i*46));
+  }
+
+  ctx.strokeStyle=t.line; ctx.lineWidth=1.5; ctx.beginPath(); ctx.moveTo(P,H-120); ctx.lineTo(W-P,H-120); ctx.stroke();
+  ctx.fillStyle=t.ink; ctx.font=`500 28px ${SANS}`;
+  ctx.fillText(`${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`, P, H-68);
+  ctx.fillStyle=t.muted; ctx.font=`500 20px ${SANS}`; ctx.textAlign='right';
+  ctx.fillText(`No. ${serialOf(l.id)}`, W-P, H-68); ctx.textAlign='left';
+  ctx.restore();
+
+  // punch hole
+  ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath(); ctx.arc(W/2, 64, 18, 0, Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation='source-over';
+  ctx.strokeStyle = img ? 'rgba(255,255,255,.8)' : 'rgba(255,255,255,.6)'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(W/2, 64, 20, 0, Math.PI*2); ctx.stroke();
+}
+
+async function openCard(l, opts={}){
+  const shape = opts.shape || (l.cat==='book' ? 'bookmark' : 'ticket');
+  const theme = opts.theme || 'light';
+  $('#sheet').innerHTML = `
+    <h3>製作卡片</h3>
+    <div class="cardopts">
+      <div class="seg" role="group" aria-label="樣式">
+        <button data-shape="ticket" aria-pressed="${shape==='ticket'}">票根</button>
+        <button data-shape="bookmark" aria-pressed="${shape==='bookmark'}">書籤</button>
+      </div>
+      <div class="seg" role="group" aria-label="配色">
+        <button data-theme="light" aria-pressed="${theme==='light'}">淺色</button>
+        <button data-theme="dark" aria-pressed="${theme==='dark'}">深色</button>
+      </div>
+    </div>
+    <div class="cardwrap ${shape}"><canvas id="cardcv" aria-label="${esc(l.title)} 的${shape==='ticket'?'票根':'書籤'}卡片"></canvas></div>
+    <p class="sub" style="margin:8px 0 0">下載後可以分享到社群或存進相簿。</p>
+    <div class="err" id="err"></div>
+    <div class="actions"><button class="btn" id="back">返回</button><button class="btn primary" id="savecard" disabled>下載圖片</button></div>`;
+  $('#back').onclick = ()=>openDetail(l.id);
+  $('#sheet').querySelectorAll('[data-shape]').forEach(b=>b.onclick=()=>openCard(l,{shape:b.dataset.shape, theme}));
+  $('#sheet').querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>openCard(l,{shape, theme:b.dataset.theme}));
+  if(!dlg.open) dlg.showModal();
+
+  const cv = $('#cardcv');
+  await ensureFonts(l.title + (l.note||'') + '入場券紀錄票年月日期評分編號未');
+  if(!cv.isConnected) return;
+  try{
+    if(shape==='ticket') await drawTicket(cv, l, CARD_THEMES[theme]);
+    else await drawBookmark(cv, l, CARD_THEMES[theme]);
+  }catch(e){ $('#err').textContent='卡片產生失敗，請再試一次。'; return; }
+  if(!cv.isConnected) return;
+  $('#savecard').disabled = false;
+  $('#savecard').onclick = async ()=>{
+    const blob = await new Promise(r=>cv.toBlob(r,'image/png'));
+    if(!blob){ $('#err').textContent='無法產生圖片。'; return; }
+    const name = `${l.title.replace(/[\\/:*?"<>|]/g,'').slice(0,40) || '紀錄'}-${shape==='ticket'?'票根':'書籤'}.png`;
+    const dl = await getDownloads();
+    if(dl){
+      try{ await dl.save({filename:name, data:blob}); toast('已下載卡片'); }
+      catch(e){ if(e?.code!=='declined') $('#err').textContent='無法下載，請稍後再試。'; }
+      return;
+    }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast('已下載卡片');
+  };
+}
+
+/* ---------- year in review ---------- */
+function reviewYears(){
+  const ys = [...new Set(records().map(l=>(l.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+  return ys.length ? ys : [String(new Date().getFullYear())];
+}
+function longestStreak(days){
+  const set = [...new Set(days)].sort(); let best=0, cur=0, prev=null;
+  for(const d of set){
+    const t = new Date(d+'T00:00').getTime();
+    cur = (prev!==null && t-prev===86400000) ? cur+1 : 1;
+    best = Math.max(best,cur); prev = t;
+  }
+  return best;
+}
+function reviewData(year){
+  const l = records().filter(x=>(x.date||'').startsWith(year));
+  const byCat = CATS.map(c=>({c, n:l.filter(x=>x.cat===c.id).length})).sort((a,b)=>b.n-a.n);
+  const rated = l.filter(x=>x.rating);
+  const byMonth = Array.from({length:12},(_,m)=>l.filter(x=>x.date.slice(5,7)===pad(m+1)).length);
+  const top = Math.max(...byMonth);
+  return {
+    year, list:l, n:l.length,
+    days: new Set(l.map(x=>x.date)).size,
+    byCat, byMonth,
+    topMonth: top ? byMonth.indexOf(top)+1 : 0, topMonthN: top,
+    avg: rated.length ? (rated.reduce((s,x)=>s+x.rating,0)/rated.length).toFixed(1) : null,
+    fives: sorted(l.filter(x=>x.rating===5)),
+    streak: longestStreak(l.map(x=>x.date)),
+    first: sorted(l).slice(-1)[0], last: sorted(l)[0],
+    withPhoto: l.filter(x=>x.photo).length,
+  };
+}
+function reviewSlides(d){
+  const S = [];
+  S.push({k:'封面', h:`<div class="rv-cover"><div class="rv-yr">${d.year}</div>
+    <p class="rv-lead">這一年，你留下了</p><div class="rv-big">${d.n}<span>筆紀錄</span></div>
+    <p class="rv-sub">分布在 ${d.days} 天，其中 ${d.withPhoto} 筆附上照片</p></div>`});
+
+  const t = d.byCat[0];
+  S.push({k:'分類', h:`<p class="rv-lead">你最常記錄的是</p>
+    <div class="rv-big" style="color:${t.c.c}">${t.c.name}<span>${t.n} 筆</span></div>
+    <div class="rv-rank">${d.byCat.filter(x=>x.n).slice(0,5).map((x,i)=>
+      `<div class="rv-row"><span class="rv-i">${i+1}</span><span class="rv-dot" style="background:${x.c.c}"></span><span>${x.c.name}</span><b>${x.n}</b></div>`).join('')}</div>`});
+
+  S.push({k:'評分', h:`<p class="rv-lead">平均評分</p>
+    <div class="rv-big">${d.avg ?? '–'}<span>／ 5</span></div>
+    ${d.fives.length?`<p class="rv-sub" style="margin-bottom:6px">給滿分的有 ${d.fives.length} 筆</p>
+      <div class="rv-rank">${d.fives.slice(0,5).map(x=>`<div class="rv-row"><span class="rv-dot" style="background:${catOf(x.cat).c}"></span><span class="rv-t">${esc(x.title)}</span><b class="stars">★★★★★</b></div>`).join('')}</div>`
+      :`<p class="rv-sub">今年還沒有滿分紀錄</p>`}`});
+
+  const max = Math.max(...d.byMonth,1);
+  S.push({k:'節奏', h:`<p class="rv-lead">紀錄最多的月份</p>
+    <div class="rv-big">${d.topMonth?d.topMonth+' 月':'–'}<span>${d.topMonthN} 筆</span></div>
+    <div class="rv-months">${d.byMonth.map((n,i)=>`<div class="rv-m"><div class="rv-bar" style="height:${n/max*100||2}%"></div><span>${i+1}</span></div>`).join('')}</div>
+    <p class="rv-sub">最長連續紀錄 ${d.streak} 天</p>`});
+
+  if(d.first) S.push({k:'首尾', h:`<p class="rv-lead">這一年的開始與最近</p>
+    <div class="rv-pair">
+      <div class="rv-card" style="--c:${catOf(d.first.cat).c}"><span>第一筆 · ${d.first.date}</span><b>${esc(d.first.title)}</b><i class="stars">${starStr(d.first.rating)}</i></div>
+      <div class="rv-card" style="--c:${catOf(d.last.cat).c}"><span>最近一筆 · ${d.last.date}</span><b>${esc(d.last.title)}</b><i class="stars">${starStr(d.last.rating)}</i></div>
+    </div>`});
+  return S;
+}
+function renderReview(){
+  const years = reviewYears();
+  const year = years.includes(state.reviewYear) ? state.reviewYear : years[0];
+  state.reviewYear = year;
+  const d = reviewData(year);
+  if(!d.n) return `<div class="rv-picker">${years.map(y=>`<button class="chip" data-ry="${y}" aria-pressed="${y===year}">${y}</button>`).join('')}</div>
+    <div class="empty"><strong>${year} 年還沒有紀錄</strong>先新增幾筆，再回來看看這一年的樣子。</div>`;
+  const S = reviewSlides(d);
+  const i = Math.min(state.reviewPage||0, S.length-1); state.reviewPage = i;
+  return `<div class="rv-picker">${years.map(y=>`<button class="chip" data-ry="${y}" aria-pressed="${y===year}">${y}</button>`).join('')}</div>
+    <section class="rv" id="rv" tabindex="0" aria-label="年度回顧，第 ${i+1} 頁，共 ${S.length} 頁">
+      <div class="rv-k">${S[i].k}</div>
+      <div class="rv-body">${S[i].h}</div>
+      <div class="rv-nav">
+        <button class="btn" data-rp="-1" ${i===0?'disabled':''} aria-label="上一頁">‹</button>
+        <div class="rv-dots">${S.map((_,j)=>`<i class="${j===i?'on':''}"></i>`).join('')}</div>
+        <button class="btn" data-rp="1" ${i===S.length-1?'disabled':''} aria-label="下一頁">›</button>
+      </div>
+    </section>`;
+}
+
+/* ---------- 想看清單 ---------- */
+function renderWish(){
+  let l = wishes();
+  if(state.cat!=='all') l = l.filter(x=>x.cat===state.cat);
+  l = [...l].sort((a,b)=>(b.created||0)-(a.created||0));
+  if(!l.length) return `<div class="empty"><strong>清單還是空的</strong>把想看的電影、想讀的書先加進來，看完後可以一鍵轉成正式紀錄。</div>`;
+  return `<p class="sub" style="margin:0 0 10px">共 ${l.length} 項${state.cat!=='all'?`（${catOf(state.cat).name}）`:''}</p>` +
+    l.map(w=>{
+      const c = catOf(w.cat);
+      return `<div class="wish" style="--c:${c.c}">
+        <div class="wish-main">
+          <div class="meta"><span class="cat">${c.name}</span><span style="color:var(--muted)">加入於 ${w.date}</span></div>
+          <div class="title">${esc(w.title)}</div>
+          ${w.note?`<div class="note">${esc(w.note)}</div>`:''}
+        </div>
+        <div class="wish-act">
+          <button class="btn primary" data-done="${w.id}">看完了</button>
+          <button class="btn" data-wedit="${w.id}">編輯</button>
+          <button class="btn danger" data-wdel="${w.id}">刪除</button>
+        </div></div>`;
+    }).join('');
+}
+
+function openWishForm(existing){
+  const f = existing ? {...existing} : {id:'', cat: state.cat!=='all'?state.cat:'movie', title:'', note:''};
+  const draw = ()=>{
+    $('#sheet').innerHTML = `
+      <h3>${existing?'編輯想看項目':'加入想看清單'}</h3>
+      <label class="f">分類</label>
+      <div class="catpick">${CATS.map(c=>`<button type="button" class="chip" data-pc="${c.id}" aria-pressed="${f.cat===c.id}"><span class="dot" style="background:${c.c}"></span>${c.name}</button>`).join('')}</div>
+      <label class="f" for="wt">標題</label>
+      <input class="in" id="wt" maxlength="120" placeholder="例如：想看的片名、想讀的書名" value="${esc(f.title)}">
+      <label class="f" for="wn">備註</label>
+      <textarea class="in" id="wn" maxlength="1000" placeholder="誰推薦的、為什麼想看" style="min-height:80px">${esc(f.note)}</textarea>
+      <div class="err" id="err"></div>
+      <div class="actions"><button class="btn" id="cancel">取消</button><button class="btn primary" id="save">儲存</button></div>`;
+    const sync = ()=>{ f.title=$('#wt').value; f.note=$('#wn').value; };
+    $('#sheet').querySelectorAll('[data-pc]').forEach(b=>b.onclick=()=>{ sync(); f.cat=b.dataset.pc; draw(); });
+    $('#cancel').onclick = ()=>dlg.close();
+    $('#save').onclick = async ()=>{
+      sync();
+      if(!f.title.trim()){ $('#err').textContent='請輸入標題。'; $('#wt').focus(); return; }
+      const item = {id: f.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,7)),
+        cat:f.cat, title:f.title.trim(), note:f.note, date: f.date || ymd(new Date()),
+        rating:0, photo:'', wish:true, created: f.created || Date.now()};
+      $('#save').disabled = true;
+      try{ await store.put(item); dlg.close(); toast(existing?'已更新':'已加入想看清單'); }
+      catch(e){ $('#save').disabled=false; $('#err').textContent='儲存失敗，請再試一次。'; }
+    };
+  };
+  draw();
+  if(!dlg.open) dlg.showModal();
+  if(!existing) setTimeout(()=>$('#wt')?.focus(), 50);
+}
+
+function finishWish(w){
+  openForm(null, {
+    prefill: {cat:w.cat, title:w.title, note:w.note, date: ymd(new Date())},
+    afterSave: ()=>store.del(w.id),
+    doneMsg: '已轉成正式紀錄'
+  });
+}
+
+/* ---------- service worker ---------- */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(reloading) return; reloading = true; location.reload();
+  });
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+
+render();
+init();
+</script>
+</body>
+</html>
