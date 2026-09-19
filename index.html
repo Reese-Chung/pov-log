@@ -85,15 +85,19 @@ h1{font-family:var(--serif);font-weight:700;font-size:1.9rem;line-height:1.15;ma
 .calhead button{border:1px solid var(--line);background:var(--card);border-radius:8px;width:36px;height:36px}
 .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .wd{text-align:center;font-size:.75rem;color:var(--muted);padding:4px 0}
-.cell{aspect-ratio:1/1.15;background:var(--card);border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden;display:flex;flex-direction:column;font-size:.8rem}
+.cell{aspect-ratio:1/1.15;background:var(--card);border:1px solid var(--line);border-radius:6px;position:relative;overflow:hidden;font-size:.8rem}
 .cell.out{visibility:hidden}
-.cell.today{border-color:var(--ink)}
+.cell.today{border-color:var(--ink);border-width:2px}
 .cell.has{cursor:pointer}
-.cell .n{position:relative;z-index:2;font-weight:500;padding:2px 4px 1px;line-height:1.1;background:var(--card);align-self:stretch}
-.cell .art{position:relative;flex:1;overflow:hidden}
+.cell .n{position:absolute;top:3px;left:5px;font-weight:500;line-height:1.1;z-index:2}
 .cell img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.cell .dots{position:absolute;left:3px;right:3px;bottom:3px;display:flex;gap:2px;flex-wrap:wrap;z-index:1}
-.cell .dots i{width:6px;height:6px;border-radius:50%;background:var(--c)}
+.cell .bar{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;justify-content:space-between;gap:3px;padding:14px 5px 4px;z-index:2}
+.cell.hasimg .n{display:none}
+.cell.hasimg .bar{background:linear-gradient(rgba(10,14,22,0),rgba(10,14,22,.72))}
+.cell.hasimg .bar .d{color:#fff;font-weight:700;font-size:.92rem;line-height:1;text-shadow:0 1px 2px rgba(10,14,22,.5)}
+.cell:not(.hasimg) .bar .d{display:none}
+.cell .dots{display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+.cell .dots i{width:6px;height:6px;border-radius:50%;background:var(--c);box-shadow:0 0 0 1.5px rgba(255,255,255,.75)}
 
 /* gallery */
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
@@ -401,11 +405,11 @@ function renderCal(){
   for(let d=1; d<=days; d++){
     const key = `${y}-${pad(mo+1)}-${pad(d)}`; const items = byDay[key]||[];
     const img = items.find(x=>photosOf(x).length);
-    cells += `<div class="cell${items.length?' has':''}${key===today?' today':''}" ${items.length?`data-day="${key}" role="button" tabindex="0" aria-label="${key}，${items.length} 筆"`:''}>
+    cells += `<div class="cell${items.length?' has':''}${img?' hasimg':''}${key===today?' today':''}" ${items.length?`data-day="${key}" role="button" tabindex="0" aria-label="${key}，${items.length} 筆"`:''}>
+      ${img?`<img src="${photosOf(img)[0]}" alt="">`:''}
       <span class="n">${d}</span>
-      <span class="art">
-        ${img?`<img src="${photosOf(img)[0]}" alt="">`:''}
-        <span class="dots">${items.slice(0,6).map(x=>`<i style="--c:${catOf(x.cat).c}"></i>`).join('')}</span>
+      <span class="bar"><span class="d">${d}</span>
+        <span class="dots">${items.slice(0,4).map(x=>`<i style="--c:${catOf(x.cat).c}"></i>`).join('')}</span>
       </span>
     </div>`;
   }
